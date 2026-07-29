@@ -1,3 +1,11 @@
+/**
+ * @file api/search-products.js
+ * @description Moteur de recherche hybride (Vectoriel + Attributs) :
+ *              combine des embeddings Voyage AI (`voyage-3-lite`), la base vectorielle Qdrant,
+ *              la correction de fautes d'orthographe (Levenshtein), le filtrage d'attributs métier
+ *              (marques, capacités, dimensions, prix) et le rate-limiting Redis (Upstash).
+ */
+
 const CATEGORY_KEYWORDS = require('./category-keywords');
 const TOY_CATEGORIES = [111,112,115,116,121,122,123,124,125,126,127,128,129,131,132,133,134,135,136,137,141,143,144,145,146,147];
 const PRINTER_CATEGORIES = [321, 322];
