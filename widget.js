@@ -1,3 +1,11 @@
+/**
+ * @file widget.js
+ * @description Widget Chatbot MaoréDiscount (Vanilla JS).
+ *              Gère l'UI flottante, les requêtes API vers /api/chat, 
+ *              la navigation par menus rapides et le rendu dynamique (Markdown/images).
+ * @integration <script src="https://maorediscount-api.vercel.app/widget.js"></script>
+ */
+
 // widget.js — Bulle de chat MaoréDiscount
 // Intégration : <script src="https://maorediscount-api.vercel.app/widget.js"></script>
 (function () {
