@@ -1,3 +1,7 @@
+/**
+ * @description Dictionnaire de correspondance entre les identifiants de catégories (ID) 
+ *              et leurs mots-clés associés pour le filtrage et la recherche hybride.
+ */
 module.exports = {
   // ===================== JOUETS =====================
   100: [
