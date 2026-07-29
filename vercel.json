@@ -1,3 +1,5 @@
+// @file vercel.json
+// @description Configuration Vercel : injection des en-têtes de sécurité HTTP (CORS, HSTS, Anti-XSS, Clickjacking) sur toutes les routes de l'API.
 {
   "version": 2,
   "headers": [
