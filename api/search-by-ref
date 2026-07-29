@@ -1,5 +1,5 @@
 /**
- * @file api/product-by-ref.js
+ * @file api/search-by-ref.js
  * @description Endpoint de recherche exacte de produit par identifiant :
  *              effectue une cascade de vérifications sur l'API PrestaShop (Référence SKU ➡️ Code-barres EAN13 ➡️ ID Direct)
  *              et renvoie la fiche produit formatée avec lien et image.
