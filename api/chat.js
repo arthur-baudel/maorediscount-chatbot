@@ -1,3 +1,9 @@
+/**
+ * @description Endpoint proxy sécurisé pour le chatbot MaoréDiscount : 
+ *              gestion du System Prompt, rate limiting Redis, sanitisation de l'historique 
+ *              et orchestration du Tool Use avec l'API Anthropic Claude.
+ */
+
 // /api/chat.js — Version sécurisée MaoréDiscount
 // Sécurité : rate limiting Redis, validation inputs, CORS strict, historique sanitisé
 
