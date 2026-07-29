@@ -1,3 +1,11 @@
+/**
+ * @file api/cron-sync.js
+ * @description Tâche d'arrière-plan (Cron Job) de synchronisation incrémentale :
+ *              récupère les produits PrestaShop mis à jour lors des 2 dernières heures (`date_upd`),
+ *              génère leurs vectorisations via Voyage AI (`voyage-3-lite`)
+ *              et met à jour dynamiquement la base vectorielle Qdrant (`upsert`).
+ */
+
 export default async function handler(req, res) {
   // Sécurité : accepte uniquement les appels du cron Vercel ou avec le bon secret
   const authHeader = req.headers["authorization"];
