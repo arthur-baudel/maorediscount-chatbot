@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OutilPro — Aide à la décision IA (concept démo)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root {
+    --bg: #F5F6F7;
+    --surface: #FFFFFF;
+    --line: #E3E6EA;
+    --navy: #16324F;
+    --navy2: #1F4368;
+    --ink: #1B2430;
+    --muted: #66707F;
+    --accent: #F2542D;
+    --accent-soft: #FDE7E1;
+    --ok: #1B998B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  .demo-flag {
+    background: var(--navy);
+    color: #fff;
+    text-align: center;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    letter-spacing: 0.02em;
+  }
+  .demo-flag strong { color: #FFD59E; }
+
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand span { color: var(--accent); }
+  .breadcrumb {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .breadcrumb b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Layout page catégorie ---------- */
+  .category-header {
+    max-width: 1080px;
+    margin: 2rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .category-header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .category-header .sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .ai-cta-bar {
+    max-width: 1080px;
+    margin: 1.25rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .ai-cta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+    border-radius: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .ai-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(22,50,79,0.25); }
+  .ai-cta-icon {
+    width: 42px; height: 42px; flex-shrink: 0;
+    background: var(--accent);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .ai-cta-text { flex: 1; }
+  .ai-cta-text .title {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  .ai-cta-text .desc {
+    color: #B8C6D6;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+  .ai-cta-arrow { color: #B8C6D6; font-size: 1.2rem; flex-shrink: 0; }
+
+  /* ---------- Page catégorie : filtres + grille ---------- */
+  .page-body {
+    max-width: 1080px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 720px) { .page-body { grid-template-columns: 1fr; } .filters { display: none; } }
+
+  .filters {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    height: fit-content;
+  }
+  .filters h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .filter-row {
+    font-size: 0.82rem;
+    color: var(--ink);
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .filter-row:last-child { border-bottom: none; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+    align-content: start;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-img { width: 100%; height: 120px; background: #EEF0F2; }
+  .card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .card-name { font-size: 0.8rem; font-weight: 600; color: var(--ink); min-height: 2.4em; }
+  .card-price { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 0.9rem; color: var(--navy); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(22, 50, 79, 0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    background: var(--navy);
+    color: #fff;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header .title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .modal-close {
+    background: none; border: none; color: #B8C6D6; font-size: 1.3rem;
+    cursor: pointer; line-height: 1; padding: 2px;
+  }
+  .modal-close:hover { color: #fff; }
+
+  .step-dots {
+    display: flex; gap: 6px; padding: 14px 20px 0;
+  }
+  .step-dot {
+    flex: 1; height: 4px; border-radius: 2px; background: var(--line);
+    transition: background 0.25s ease;
+  }
+  .step-dot.active, .step-dot.done { background: var(--accent); }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .step { display: none; }
+  .step.active { display: block; animation: stepIn 0.25s ease; }
+  @keyframes stepIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+
+  .step h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .step p.hint { color: var(--muted); font-size: 0.82rem; margin-bottom: 16px; }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .option-btn {
+    background: var(--bg);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .option-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .option-btn .emoji { font-size: 1.3rem; display: block; margin-bottom: 6px; }
+  .option-btn .label { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+
+  .free-input-row {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+  }
+  .free-input-row input {
+    flex: 1;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .free-input-row input:focus { border-color: var(--accent); }
+  .free-input-row button {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .loading-step { text-align: center; padding: 2rem 0; }
+  .loading-step .dots span {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); margin: 0 3px;
+    animation: dotpulse 1s infinite ease-in-out;
+  }
+  .loading-step .dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-step .dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes dotpulse { 0%,100% { opacity:0.4; transform:scale(0.85);} 50% {opacity:1; transform:scale(1.1);} }
+  .loading-step .txt { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
+
+  .result-intro {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .result-card {
+    display: flex;
+    gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .result-card img {
+    width: 56px; height: 56px; object-fit: contain; background: #fff;
+    border-radius: 6px; flex-shrink: 0;
+  }
+  .result-card .info { flex: 1; min-width: 0; }
+  .result-card .name { font-size: 0.82rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .result-card .price { font-family: 'IBM Plex Mono', monospace; color: var(--navy); font-weight: 600; font-size: 0.85rem; margin-top: 2px; }
+  .result-card a {
+    flex-shrink: 0;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+
+  .empty-result { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<div class="demo-flag">Concept démo — <strong>Bouton + modal d'aide à la décision</strong> · assistant guidé sans toucher au chatbot existant du site</div>
+
+<nav>
+  <div class="brand">OUTIL<span>PRO</span></div>
+  <div class="breadcrumb">Accueil / Électroménager / <b>Réfrigérateurs</b></div>
+</nav>
+
+<div class="category-header">
+  <h1>Réfrigérateurs</h1>
+  <div class="sub">142 produits — filtrez ou laissez l'IA choisir pour vous</div>
+</div>
+
+<div class="ai-cta-bar">
+  <button class="ai-cta" onclick="openModal()">
+    <div class="ai-cta-icon">🔍</div>
+    <div class="ai-cta-text">
+      <div class="title">Trouver mon produit idéal avec l'IA</div>
+      <div class="desc">2 questions rapides, 3 recommandations personnalisées</div>
+    </div>
+    <div class="ai-cta-arrow">→</div>
+  </button>
+</div>
+
+<div class="page-body">
+  <aside class="filters">
+    <h3>Filtres</h3>
+    <div class="filter-row">☐ Samsung</div>
+    <div class="filter-row">☐ LG</div>
+    <div class="filter-row">☐ Whirlpool</div>
+    <div class="filter-row">☐ Haier</div>
+    <h3 style="margin-top:16px;">Prix</h3>
+    <div class="filter-row">☐ Moins de 300€</div>
+    <div class="filter-row">☐ 300€ – 700€</div>
+    <div class="filter-row">☐ Plus de 700€</div>
+  </aside>
+
+  <div class="grid">
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+    <div class="card"><div class="card-img"></div><div class="card-body"><div class="card-name">&nbsp;</div><div class="card-price">&nbsp;</div></div></div>
+  </div>
+</div>
+
+<!-- ---------- Modal IA ---------- -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="title">🔍 Trouver mon produit idéal</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="step-dots">
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+    <div class="modal-body">
+
+      <div class="step" id="step1">
+        <h4>Quel est votre usage ?</h4>
+        <p class="hint">Choisissez ce qui correspond le mieux, ou décrivez librement.</p>
+        <div class="option-grid">
+          <button class="option-btn" onclick="chooseUsage('un studio ou petit appartement')"><span class="emoji">🏠</span><span class="label">Studio / petit appart</span></button>
+          <button class="option-btn" onclick="chooseUsage('une famille nombreuse')"><span class="emoji">👨‍👩‍👧‍👦</span><span class="label">Famille nombreuse</span></button>
+          <button class="option-btn" onclick="chooseUsage('un usage professionnel ou commerce')"><span class="emoji">🏪</span><span class="label">Commerce / pro</span></button>
+          <button class="option-btn" onclick="chooseUsage('une colocation')"><span class="emoji">🧑‍🤝‍🧑</span><span class="label">Colocation</span></button>
+        </div>
+        <div class="free-input-row">
+          <input type="text" id="usageFreeInput" placeholder="Ou décrivez votre besoin..." onkeydown="if(event.key==='Enter') chooseUsageFromInput()" />
+          <button onclick="chooseUsageFromInput()">OK</button>
+        </div>
+      </div>
+
+      <div class="step" id="step2">
+        <h4>Quel est votre budget ?</h4>
+        <p class="hint">On affine la recherche pour rester dans votre enveloppe.</p>
+        <div class="option-grid">
+          <button class="option-btn" onclick="chooseBudget('moins de 300 euros')"><span class="emoji">💶</span><span class="label">Moins de 300€</span></button>
+          <button class="option-btn" onclick="chooseBudget('entre 300 et 700 euros')"><span class="emoji">💶</span><span class="label">300€ – 700€</span></button>
+          <button class="option-btn" onclick="chooseBudget('plus de 700 euros')"><span class="emoji">💶</span><span class="label">Plus de 700€</span></button>
+          <button class="option-btn" onclick="chooseBudget('peu importe le budget')"><span class="emoji">✨</span><span class="label">Peu importe</span></button>
+        </div>
+        <span class="back-link" onclick="goToStep(1)">← Revenir à l'usage</span>
+      </div>
+
+      <div class="step" id="step3">
+        <div class="loading-step" id="loadingStep">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="txt">Recherche des meilleurs produits pour vous...</div>
+        </div>
+        <div id="resultContent" style="display:none;"></div>
+        <span class="back-link" onclick="resetModal()">↻ Recommencer</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://maorediscount-api.vercel.app/api/chat';
+let history = [];
+let chosenUsage = '';
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  goToStep(1);
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function goToStep(n) {
+  [1, 2, 3].forEach(i => {
+    document.getElementById('step' + i).classList.toggle('active', i === n);
+    const dot = document.getElementById('dot' + i);
+    dot.classList.toggle('active', i === n);
+    dot.classList.toggle('done', i < n);
+  });
+}
+
+function chooseUsageFromInput() {
+  const val = document.getElementById('usageFreeInput').value.trim();
+  if (!val) return;
+  chooseUsage(val);
+}
+
+function chooseUsage(usage) {
+  chosenUsage = usage;
+  goToStep(2);
+}
+
+function chooseBudget(budget) {
+  goToStep(3);
+  runRecommendation(chosenUsage, budget);
+}
+
+function resetModal() {
+  history = [];
+  chosenUsage = '';
+  document.getElementById('usageFreeInput').value = '';
+  document.getElementById('loadingStep').style.display = 'block';
+  document.getElementById('resultContent').style.display = 'none';
+  document.getElementById('resultContent').innerHTML = '';
+  goToStep(1);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function runRecommendation(usage, budget) {
+  const loadingStep = document.getElementById('loadingStep');
+  const resultContent = document.getElementById('resultContent');
+  loadingStep.style.display = 'block';
+  resultContent.style.display = 'none';
+
+  const query = `Je cherche un réfrigérateur pour ${usage}, avec un budget ${budget}.`;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: query, history }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+    history = data.history || history;
+    renderResult(data.reply || '');
+  } catch (e) {
+    resultContent.innerHTML = `<div class="empty-result">Une erreur est survenue, réessayez dans un instant.</div>`;
+    console.error('Modal demo error:', e);
+  } finally {
+    loadingStep.style.display = 'none';
+    resultContent.style.display = 'block';
+  }
+}
+
+function renderResult(text) {
+  const resultContent = document.getElementById('resultContent');
+
+  if (!text.includes('🛒')) {
+    resultContent.innerHTML = `<div class="result-intro">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+    return;
+  }
+
+  const [introRaw, ...rest] = text.split('🛒');
+  const intro = introRaw.trim();
+  const blocks = rest.map(b => b.trim()).filter(Boolean);
+
+  if (blocks.length === 0) {
+    resultContent.innerHTML = `<div class="empty-result">Aucun produit ne correspond exactement, essayez d'élargir le budget.</div>`;
+    return;
+  }
+
+  let html = `<div class="result-intro">Voici les ${blocks.length} produits qui correspondent le mieux à votre besoin :</div>`;
+
+  html += blocks.map(block => {
+    const nameMatch = block.match(/\*\*(.+?)\*\*\s*—\s*([\d.,]+)\s*€/);
+    const imgMatch = block.match(/!\[image\]\((.+?)\)/);
+    const urlMatch = block.match(/👉\s*(https?:\/\/\S+)/) || block.match(/\]\((https?:\/\/\S+)\)/);
+    const nom = nameMatch ? nameMatch[1].trim() : 'Produit';
+    const prix = nameMatch ? `${nameMatch[2]} €` : '';
+    const image_url = imgMatch ? imgMatch[1].trim() : '';
+    const url = urlMatch ? urlMatch[1].trim() : '#';
+    return `
+      <div class="result-card">
+        ${image_url ? `<img src="${image_url}" alt="${escapeHtml(nom)}" onerror="this.style.display='none'">` : ''}
+        <div class="info">
+          <div class="name">${escapeHtml(nom)}</div>
+          <div class="price">${escapeHtml(prix)}</div>
+        </div>
+        <a href="${url}" target="_blank">Voir →</a>
+      </div>
+    `;
+  }).join('');
+
+  resultContent.innerHTML = html;
+}
+</script>
+</body>
+</html>

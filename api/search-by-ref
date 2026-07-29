@@ -1,0 +1,66 @@
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+
+  const authHeader = req.headers["authorization"] || req.query["Authorization"];
+  if (!authHeader || authHeader !== `Bearer ${process.env.CHATLAB_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const { ref } = req.query;
+  if (!ref) return res.status(400).json({ error: "Paramètre 'ref' manquant" });
+
+  try {
+    const SHOP_URL = process.env.PRESTASHOP_URL;
+    const API_KEY = process.env.PRESTASHOP_API_KEY;
+
+    // Cherche par référence
+    const refUrl = `${SHOP_URL}/api/products?ws_key=${API_KEY}&output_format=JSON&display=[id,name,description_short,price,link_rewrite,id_default_image,active,reference]&filter[reference]=[${ref}]&limit=1&language=1`;
+    const refRes = await fetch(refUrl);
+    const refData = await refRes.json();
+    let product = refData.products?.[0] || null;
+
+    // Si pas trouvé par référence, essaie par EAN13
+    if (!product) {
+      const eanUrl = `${SHOP_URL}/api/products?ws_key=${API_KEY}&output_format=JSON&display=[id,name,description_short,price,link_rewrite,id_default_image,active,reference]&filter[ean13]=[${ref}]&limit=1&language=1`;
+      const eanRes = await fetch(eanUrl);
+      const eanData = await eanRes.json();
+      product = eanData.products?.[0] || null;
+    }
+
+    // Si toujours pas trouvé, essaie par ID direct
+    if (!product) {
+      const idRes = await fetch(`${SHOP_URL}/api/products/${ref}?ws_key=${API_KEY}&output_format=JSON&language=1`);
+      if (idRes.ok) {
+        const idData = await idRes.json();
+        product = idData.product || null;
+      }
+    }
+
+    if (!product) {
+      return res.status(404).json({ error: "Produit non trouvé", ref });
+    }
+
+    const description = (product.description_short || "").replace(/<[^>]+>/g, "").trim();
+    const imageUrl = product.id_default_image
+      ? `${SHOP_URL}/${product.id_default_image}-large_default/${product.link_rewrite || "product"}.jpg`
+      : "";
+
+    return res.status(200).json({
+      id: product.id,
+      nom: product.name,
+      description: description.slice(0, 300),
+      prix: parseFloat(product.price || 0).toFixed(2) + " €",
+      image_url: imageUrl,
+      url: `${SHOP_URL}/index.php?id_product=${product.id}&controller=product`,
+      reference: product.reference || ref,
+    });
+  } catch (error) {
+    console.error("Erreur:", error.message);
+    return res.status(500).json({ error: "Erreur serveur", details: error.message });
+  }
+}

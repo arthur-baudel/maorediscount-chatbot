@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLASSIC AI — Démo Chatbot MaoréDiscount</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: #2a2a3a;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --text: #e8e8f0;
+      --text-muted: #7070a0;
+      --bot-bg: #1c1c2e;
+      --user-bg: #2d1f6e;
+      --success: #22d3a0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* HEADER */
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .logo-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      display: block;
+    }
+    .badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+    /* HERO */
+    .hero {
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    /* TECH STACK */
+    .stack {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .stack-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    /* CHAT */
+    .chat-container {
+      max-width: 720px;
+      margin: 0 auto 2rem;
+      width: 100%;
+      padding: 0 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-window {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 480px;
+      max-height: 560px;
+    }
+    .chat-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+    }
+    .bot-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .bot-info { flex: 1; min-width: 0; }
+    .bot-info .name {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .bot-info .status {
+      font-size: 0.7rem;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .reset-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent2); }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .message {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message.user {
+      flex-direction: row-reverse;
+    }
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .message.bot .msg-avatar {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    .message.user .msg-avatar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .msg-content {
+      max-width: 78%;
+    }
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .message.bot .msg-bubble {
+      background: var(--bot-bg);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+      color: var(--text);
+    }
+    .message.user .msg-bubble {
+      background: var(--user-bg);
+      border: 1px solid #4a3a9a;
+      border-top-right-radius: 4px;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    /* Product card */
+    .product-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 8px;
+      transition: border-color 0.2s;
+    }
+    .product-card:hover {
+      border-color: var(--accent);
+    }
+    .product-img {
+      width: 100%;
+      height: 140px;
+      object-fit: contain;
+      background: #1a1a2e;
+      padding: 8px;
+    }
+    .product-body {
+      padding: 10px 12px;
+    }
+    .product-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .product-price {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 8px;
+    }
+    .product-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .product-link:hover { color: var(--accent2); }
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 12px 14px;
+      background: var(--bot-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      border-top-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--accent2);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+    /* Quick replies (menu façon widget) */
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+    }
+    .qr-btn {
+      background: var(--bg);
+      border: 1.5px solid var(--accent);
+      color: var(--accent2);
+      border-radius: 20px;
+      padding: 7px 13px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .qr-btn:hover {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .qr-btn.qr-menu { border-style: dashed; }
+    /* Input */
+    .chat-input {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      background: var(--surface2);
+    }
+    .chat-input input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .chat-input input:focus {
+      border-color: var(--accent);
+    }
+    .chat-input input::placeholder {
+      color: var(--text-muted);
+    }
+    .send-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .send-btn:hover { opacity: 0.85; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* Suggestions */
+    .suggestions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .suggestion-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .suggestion-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+    /* TECH NOTE */
+    .tech-note {
+      max-width: 720px;
+      margin: 0 auto 2rem;
+      padding: 0 1.5rem;
+    }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .tech-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .tech-card .label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .tech-card .value {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent2);
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.5rem; }
+      .tech-grid { grid-template-columns: repeat(2, 1fr); }
+      .msg-content { max-width: 88%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div class="logo-text">
+      CLASSIC AI - Demo
+      <span class="logo-sub"><a href="https://www.maorediscount.yt" target="_blank" rel="noopener" style="color: inherit; text-decoration: none;">maorediscount.yt</a></span>
+    </div>
+  </div>
+  <span class="badge">LIVE DEMO</span>
+</header>
+
+<div class="hero">
+  <span class="hero-tag">Projet IA & E-commerce</span>
+  <h1>Chatbot de recherche produit intelligent</h1>
+  <p>Moteur de recherche sémantique sur un catalogue de 50 000 produits. Recherche par vecteurs, filtrage par catégorie, prix, marque et capacité.</p>
+  <div class="stack">
+    <span class="stack-item">Node.js · Vercel</span>
+    <span class="stack-item">Qdrant Vector DB</span>
+    <span class="stack-item">Voyage AI Embeddings</span>
+    <span class="stack-item">Claude · Tool calling</span>
+    <span class="stack-item">50 000 produits</span>
+    <span class="stack-item">PrestaShop</span>
+  </div>
+</div>
+
+<div class="chat-container">
+  <div class="chat-window">
+    <div class="chat-header">
+      <div class="bot-avatar">🛒</div>
+      <div class="bot-info">
+        <div class="name">CLASSIC AI — Assistant MaoréDiscount</div>
+        <div class="status"><span class="status-dot"></span> En ligne · API live</div>
+      </div>
+      <button class="reset-btn" id="resetBtn" title="Réinitialiser la conversation" aria-label="Réinitialiser la conversation">↻</button>
+    </div>
+
+    <div class="chat-messages" id="messages">
+      <div class="message bot">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-content">
+          <div class="msg-bubble" style="white-space: normal;">Bonjour ! Je suis Vision, l'assistant de <strong>MaoréDiscount</strong>. Je recherche parmi <strong>50 000 produits</strong> en temps réel.<br><br>Que cherchez-vous aujourd'hui ?</div>
+          <div class="suggestions">
+            <button class="suggestion-btn" onclick="sendSuggestion('television samsung')">📺 TV Samsung</button>
+            <button class="suggestion-btn" onclick="sendSuggestion('pc portable moins de 800 euros')">💻 PC &lt; 800€</button>
+            <button class="suggestion-btn" onclick="sendSuggestion('jouet enfant 5 ans')">🧸 Idée cadeau pour enfant de 5 ans</button>
+            <button class="suggestion-btn" onclick="sendSuggestion('aspirateur sans fil')">🌀 Aspirateur</button>
+            <button class="suggestion-btn" onclick="sendSuggestion('robot patissier grande capacite')">👨‍🍳 Quel robot pâtissier possède une cuve de grande capacité ?</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-replies" id="quickReplies"></div>
+
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Ex: lave-linge Neolux 6kg..." onkeydown="if(event.key==='Enter') sendMessage()" />
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="tech-note">
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="label">Architecture</div>
+      <div class="value">Recherche hybride</div>
+    </div>
+    <div class="tech-card">
+      <div class="label">Catalogue</div>
+      <div class="value">~50 000 produits</div>
+    </div>
+    <div class="tech-card">
+      <div class="label">Embeddings</div>
+      <div class="value">Voyage AI v3-lite</div>
+    </div>
+    <div class="tech-card">
+      <div class="label">Vector DB</div>
+      <div class="value">Qdrant Cloud</div>
+    </div>
+    <div class="tech-card">
+      <div class="label">API</div>
+      <div class="value">Node.js · Vercel</div>
+    </div>
+    <div class="tech-card">
+      <div class="label">Modèle IA</div>
+      <div class="value">Claude · Tool use</div>
+    </div>
+  </div>
+</div>
+
+<!-- Widget flottant, en plus du chat intégré ci-dessus -->
+<script src="https://maorediscount-api.vercel.app/widget.js"></script>
+
+<script>
+// Cette démo appelle directement /api/chat (Claude + Role & Behaviour complet),
+// donc les réponses (produits ET infos pratiques : livraison, paiement, garanties...)
+// suivent exactement les mêmes règles que le widget en production.
+const API_URL = 'https://maorediscount-api.vercel.app/api/chat';
+
+let history = [];
+let isLoading = false;
+
+// Contenu d'accueil initial, réutilisé lors du reset.
+const WELCOME_HTML = `
+  <div class="message bot">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble" style="white-space: normal;">Bonjour ! Je suis Vision AI, l'assistant de <strong>MaoréDiscount</strong>. Je recherche parmi <strong>50 000 produits</strong> en temps réel.<br><br>Que cherchez-vous aujourd'hui ?</div>
+      <div class="suggestions">
+        <button class="suggestion-btn" onclick="sendSuggestion('television samsung')">📺 TV Samsung</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('pc portable moins de 800 euros')">💻 PC &lt; 800€</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('jouet enfant 5 ans')">🧸 Jouet 5 ans</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('aspirateur sans fil')">🌀 Aspirateur</button>
+      </div>
+    </div>
+  </div>
+`;
+
+// Menu de navigation rapide, identique dans l'esprit au widget en production.
+const MAIN_MENU = [
+  { label: 'Voir nos produits', emoji: '🛍️', message: "Qu'est-ce que vous vendez ?" },
+  { label: 'Livraison & Commande', emoji: '📦', message: 'Quels sont vos modes de livraison ?' },
+  { label: 'Paiement', emoji: '💳', message: 'Quels sont vos moyens de paiement ?' },
+  { label: 'Retour & Remboursement', emoji: '🔄', message: "Comment fonctionne le retour d'un produit ?" },
+  { label: 'Montage & Installation', emoji: '🛠️', message: 'Proposez-vous le montage et installation ?' },
+  { label: 'Carte MTUKUFU', emoji: '🎫', message: 'Comment fonctionne la carte MTUKUFU ?' },
+  { label: 'Promotions du moment', emoji: '💰', message: 'Quelles sont les promotions en cours ?' },
+];
+const MENU_BUTTON = { label: 'Menu principal', emoji: '🏠' };
+
+document.getElementById('resetBtn').addEventListener('click', resetConversation);
+
+function resetConversation() {
+  history = [];
+  document.getElementById('messages').innerHTML = WELCOME_HTML;
+  document.getElementById('quickReplies').innerHTML = '';
+  document.getElementById('userInput').value = '';
+}
+
+function renderQuickReplies(items, includeMenuButton) {
+  const container = document.getElementById('quickReplies');
+  container.innerHTML = '';
+  items.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.className = 'qr-btn';
+    btn.textContent = `${item.emoji} ${item.label}`;
+    btn.onclick = () => handleQuickReply(item);
+    container.appendChild(btn);
+  });
+  if (includeMenuButton) {
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'qr-btn qr-menu';
+    menuBtn.textContent = `${MENU_BUTTON.emoji} ${MENU_BUTTON.label}`;
+    menuBtn.onclick = () => renderQuickReplies(MAIN_MENU, false);
+    container.appendChild(menuBtn);
+  }
+}
+
+function handleQuickReply(item) {
+  document.getElementById('quickReplies').innerHTML = '';
+  addMessage('user', escapeHtml(item.label));
+  performChat(item.message);
+}
+
+function addMessage(role, contentHtml) {
+  const messages = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `
+    <div class="msg-avatar">${role === 'bot' ? '🤖' : '👤'}</div>
+    <div class="msg-content"><div class="msg-bubble">${contentHtml}</div></div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  return div;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showTyping() {
+  const messages = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message bot';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+// Transforme la réponse texte de chat.js (format 🛒 **nom** — prix€ / image / lien)
+// en jolies cartes produit, et garde le texte normal pour les réponses sans produit.
+function renderReply(text) {
+  // Gestion du lien de promotions au format simple
+  if (text.includes("maorediscount.yt/promotions")) {
+    return `Promotions du moment<br>👉 <a href="https://www.maorediscount.yt/promotions" target="_blank" rel="noopener" style="color: var(--accent2); font-weight: 500;">Retrouvez toutes nos promotions en cours ici</a>`;
+  }
+
+  if (!text.includes('🛒')) {
+    return escapeHtml(text).replace(/\n/g, '<br>');
+  }
+
+  const [introRaw, ...rest] = text.split('🛒');
+  const intro = introRaw.trim();
+  let html = intro ? `${escapeHtml(intro)}<br><br>` : '';
+
+  const productBlocks = rest.map(b => b.trim()).filter(Boolean);
+  const cards = productBlocks.map(block => {
+    const nameMatch = block.match(/\*\*(.+?)\*\*\s*—\s*([\d.,]+)\s*€/);
+    const imgMatch = block.match(/!\[image\]\((.+?)\)/);
+    const urlMatch = block.match(/👉\s*(https?:\/\/\S+)/);
+
+    const nom = nameMatch ? nameMatch[1].trim() : 'Produit';
+    const prix = nameMatch ? `${nameMatch[2]} €` : '';
+    const image_url = imgMatch ? imgMatch[1].trim() : '';
+    const url = urlMatch ? urlMatch[1].trim() : '#';
+
+    return `
+      <div class="product-card">
+        ${image_url ? `<img class="product-img" src="${image_url}" alt="${escapeHtml(nom)}" onerror="this.style.display='none'">` : ''}
+        <div class="product-body">
+          <div class="product-name">🛒 ${escapeHtml(nom)}</div>
+          <div class="product-price">${escapeHtml(prix)}</div>
+          <a href="${url}" target="_blank" class="product-link">Voir le produit →</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return html + cards;
+}
+
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  document.getElementById('quickReplies').innerHTML = '';
+  addMessage('user', escapeHtml(text));
+  performChat(text);
+}
+
+async function performChat(text) {
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+    try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-widget-token': 'wgt_maorediscount_2026_xK9p'
+      },
+      body: JSON.stringify({ message: text, history }),
+    });
+    const data = await res.json();
+    hideTyping();
+
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+    history = data.history || history;
+    addMessage('bot', renderReply(data.reply || "Désolé, je n'ai pas de réponse à vous donner."));
+  } catch (e) {
+    hideTyping();
+    addMessage('bot', 'Une erreur est survenue. Veuillez réessayer.');
+    console.error('CLASSIC AI demo error:', e);
+  } finally {
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('userInput').focus();
+    // Menu de navigation toujours accessible après chaque réponse.
+    renderQuickReplies(MAIN_MENU.slice(0, 3), true);
+  }
+}
+
+function sendSuggestion(text) {
+  document.getElementById('quickReplies').innerHTML = '';
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+// Affiche le menu principal dès le chargement de la page.
+renderQuickReplies(MAIN_MENU, false);
+</script>
+</body>
+</html>

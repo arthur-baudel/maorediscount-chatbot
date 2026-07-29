@@ -1,0 +1,27 @@
+name: Sync Qdrant Payloads
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  repair-payload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lancement de repair-payload.js
+        run: node scripts/repair-payload.js
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          PRESTASHOP_URL: ${{ secrets.PRESTASHOP_URL }}
+          PRESTASHOP_API_KEY: ${{ secrets.PRESTASHOP_API_KEY }}
