@@ -1,5 +1,7 @@
+# ==============================================================================
 # @description Automation GitHub Actions : Exécute hebdomadairement (ou à la demande)
 #              le script de resynchronisation des payloads Qdrant avec PrestaShop.
+# ==============================================================================
 
 name: Sync Qdrant Payloads
 
