@@ -1,5 +1,5 @@
 /**
- * @file api/cron-sync.js
+ * @file api/sync.js
  * @description Tâche d'arrière-plan (Cron Job) de synchronisation incrémentale :
  *              récupère les produits PrestaShop mis à jour lors des 2 dernières heures (`date_upd`),
  *              génère leurs vectorisations via Voyage AI (`voyage-3-lite`)
