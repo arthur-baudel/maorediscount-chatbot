@@ -1,4 +1,4 @@
 // @file package.json
 // @description Fichier de configuration du projet Node.js : définit le nom de l'API (`maorediscount-api`),
-sa version et la dépendance `csv-parse` utilisée pour le traitement des données CSV du catalogue.
+                sa version et la dépendance `csv-parse` utilisée pour le traitement des données CSV du catalogue.
 {"name":"maorediscount-api","version":"1.0.0","dependencies":{"csv-parse":"^6.2.1"}}
