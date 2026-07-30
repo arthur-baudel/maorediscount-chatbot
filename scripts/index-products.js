@@ -1,6 +1,6 @@
 // Script d'indexation de tous les produits PrestaShop dans Qdrant
 // Usage : node scripts/index-products.js
-// Durée estimée : 10-30 minutes pour 45 000 produits
+// Durée estimée : 10-30 minutes pour 50 000 produits
 
 const QDRANT_URL = "https://e64816af-a69c-40ad-b1a3-ebdf7d871c06.europe-west3-0.gcp.cloud.qdrant.io:6333";
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
