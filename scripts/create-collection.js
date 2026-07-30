@@ -3,6 +3,7 @@
  * @description Script d'initialisation Qdrant : crée la collection `products` avec une dimension
  *              vectorielle de 512 et une métrique de distance Cosine (optimisée pour Voyage AI / voyage-3-lite).
  */
+
 const QDRANT_URL = process.env.QDRANT_URL;
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
 const COLLECTION_NAME = "products";
