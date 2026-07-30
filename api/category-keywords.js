@@ -1,4 +1,5 @@
 /**
+ * @file config/category-keywords.js
  * @description Dictionnaire de correspondance entre les identifiants de catégories (ID) 
  *              et leurs mots-clés associés pour le filtrage et la recherche hybride.
  */
