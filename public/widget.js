@@ -25,9 +25,6 @@
       { label: "Voir nos produits", emoji: "🛍️", message: "Qu'est-ce que vous vendez ?" },
       { label: "Livraison & Commande", emoji: "📦", message: "Quels sont vos modes de livraison ?" },
       { label: "Paiement", emoji: "💳", message: "Quels sont vos moyens de paiement ?" },
-      { label: "Retour & Remboursement", emoji: "🔄", message: "Comment fonctionne le retour d'un produit ?" },
-      { label: "Montage & Installation", emoji: "🛠️", message: "Proposez-vous le montage et l'installation ?" },
-      { label: "Carte MTUKUFU", emoji: "🎫", message: "Comment fonctionne la carte MTUKUFU ?" },
       { label: "Promotions du moment", emoji: "💰", message: "Quelles sont les promotions en cours ?" },
     ];
     const MENU_BUTTON = { label: "Menu principal", emoji: "🏠", message: "__MENU__" };
