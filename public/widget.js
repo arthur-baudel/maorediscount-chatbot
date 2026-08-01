@@ -90,15 +90,17 @@
       .md-bubble a:hover { text-decoration: underline; }
 
       /* Boutons rapides — intégrés au flux des messages, plus de bloc séparé */
-      .md-qr-group {
-        display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px 0;
-      }
-      .md-qr-btn {
-        display: flex; align-items: center; gap: 8px;
-        background: ${CHIP_SOFT}; border: none; color: ${BRAND_DARK};
-        border-radius: 12px; padding: 8px 12px 8px 8px; font-size: 13px; font-weight: 600;
-        cursor: pointer; white-space: nowrap; transition: background 0.15s ease, transform 0.1s ease;
-      }
+ .md-qr-group {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 2px 0 14px 0;
+}
+.md-qr-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: ${CHIP_SOFT}; border: none; color: ${BRAND_DARK};
+  border-radius: 12px; padding: 8px 10px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: normal; text-align: left; line-height: 1.25;
+  box-sizing: border-box; width: 100%;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
       .md-qr-btn:hover { background: #DCE9F8; transform: translateY(-1px); }
       .md-qr-icon {
         width: 24px; height: 24px; border-radius: 8px; background: #fff;
