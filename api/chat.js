@@ -6,13 +6,41 @@
  */
 
 // /api/chat.js — Version sécurisée MaoréDiscount
-// Sécurité : rate limiting Redis, validation inputs, CORS strict, historique sanitisé
+// Sécurité : rate limiting Redis, validation inputs, CORS strict, token widget signé (HMAC + TTL), historique sanitisé
 
-const ALLOWED_ORIGIN = "https://www.maorediscount.yt";
+const crypto = require("crypto");
+
+const ALLOWED_ORIGINS = [
+  "https://www.maorediscount.yt",
+  "https://maorediscount.yt",
+  "https://maorediscount-api.vercel.app",
+];
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_HISTORY_TURNS = 20;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SEC = 60;
+
+// ===================== VÉRIFICATION TOKEN WIDGET (HMAC signé, TTL) =====================
+function verifyWidgetToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  const [expiresStr, signature] = parts;
+  const expires = Number(expiresStr);
+  if (!expires || Number.isNaN(expires) || Date.now() > expires) return false;
+
+  const expectedSig = crypto
+    .createHmac("sha256", process.env.WIDGET_SECRET)
+    .update(expiresStr)
+    .digest("hex");
+
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig));
+  } catch {
+    // longueurs différentes -> Buffer.from échoue ou timingSafeEqual lève
+    return false;
+  }
+}
 
 // ===================== RATE LIMITING REDIS (Upstash) =====================
 async function checkRateLimit(ip) {
@@ -121,9 +149,17 @@ Après chaque appel RechercheProduits avec q="[produit] [marque]" :
 - Si aucun produit retourné ne contient la marque dans son nom → afficher "Nous n'avons pas de [marque] pour ce produit, mais voici ce que nous proposons :" PUIS afficher les produits.
 - Si au moins un produit contient la marque → afficher normalement avec "Oui, voici ce que nous avons :"
 
-RÉSULTAT VIDE : si l'outil retourne "total":0 ou products vide → deux cas :
+VÉRIFICATION PERTINENCE PRODUIT
+La recherche fonctionne par mot-clé et peut renvoyer des faux positifs : un produit dont le nom contient le mot cherché mais qui n'est PAS le type de produit demandé (ex: q="coffre fort" → un "lit avec coffre de rangement" n'est PAS un coffre-fort, juste un homonyme du mot "coffre").
+- Avant d'afficher les produits, vérifie pour CHAQUE produit que son nom correspond bien au TYPE de produit réellement demandé, pas seulement à un mot qu'il contient.
+- Exclus silencieusement de l'affichage tout produit qui ne correspond pas au type demandé (ne pas les mentionner, ne pas expliquer pourquoi ils sont exclus).
+- Si APRÈS cette exclusion il ne reste aucun produit pertinent → traite comme un résultat vide (voir RÉSULTAT VIDE, cas 3).
+- Si au moins un produit pertinent reste → affiche uniquement ceux-là, normalement.
+
+RÉSULTAT VIDE : si l'outil retourne "total":0 ou products vide → trois cas :
 1. Si q contenait une marque + produit (ex: "lave linge philips") → relancer avec q="[produit]" sans la marque. OBLIGATOIRE : afficher d'abord "Nous n'avons pas de [marque] pour ce produit, mais voici ce que nous proposons :" AVANT les produits.
 2. Si q contenait un modèle spécifique (ex: "iphone 20 pro max") → relancer avec q plus général (ex: "iphone") ET sort_by=price_desc. Afficher : "Je n'ai pas ce modèle exact, mais voici nos derniers modèles disponibles :"
+3. Si le second appel (sans marque/modèle) retourne AUSSI vide, ou si q était déjà un terme simple sans marque/modèle (ex: "coffre fort") et que le résultat est vide → produit absent du catalogue. Réponds en UNE SEULE phrase courte, sans reformuler, sans excuse, sans proposer de contact ni d'alternative : "Nous n'avons pas de [produit] disponible actuellement." STOP, rien d'autre après.
 
 PAGINATION : si l'utilisateur veut voir plus ("encore", "autres", "suite", "oui", "vas-y", "continue", "ya pas d'autres", "autre chose") → rappelle l'outil avec le MÊME q et page = (dernière page appelée pour ce q) + 1. Ne jamais renvoyer la même page. Si le nouvel appel retourne vide → dis "Je n'ai pas d'autres produits disponibles."
 
@@ -159,7 +195,7 @@ PRODUITS ALIMENTAIRES : non proposés.`;
 const TOOLS = [
   {
     name: "RechercheProduits",
-    description: "Recherche des produits dans le catalogue MaoréDiscount. À utiliser systématiquement dès qu'un produit, une marque ou une catégorie est mentionné par le client.",
+    description: "Recherche des produits dans le catalogue MaoréDiscount. À utiliser systématiquement dès qu'un produit, une marque ou une catégorie est mentionné.",
     input_schema: {
       type: "object",
       properties: {
@@ -181,8 +217,8 @@ const MAX_TOOL_LOOPS = 5;
 module.exports = async function handler(req, res) {
   // ===================== CORS STRICT =====================
   const origin = req.headers["origin"] || "";
-  const isAllowedOrigin = origin === ALLOWED_ORIGIN || origin === "https://maorediscount-api.vercel.app";
-  res.setHeader("Access-Control-Allow-Origin", isAllowedOrigin ? origin : ALLOWED_ORIGIN);
+  const isAllowedOrigin = ALLOWED_ORIGINS.includes(origin);
+  res.setHeader("Access-Control-Allow-Origin", isAllowedOrigin ? origin : ALLOWED_ORIGINS[0]);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-widget-token");
   res.setHeader("Vary", "Origin");
@@ -190,9 +226,9 @@ module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  // ===================== AUTH WIDGET TOKEN =====================
+  // ===================== AUTH WIDGET TOKEN (signé, TTL 5min) =====================
   const widgetToken = req.headers["x-widget-token"];
-  if (!widgetToken || widgetToken !== process.env.WIDGET_SECRET) {
+  if (!verifyWidgetToken(widgetToken)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -284,6 +320,11 @@ async function executeTool(name, input) {
   const resp = await fetch(url, { headers: { Authorization: `Bearer ${process.env.CHATLAB_SECRET}` } });
   if (!resp.ok) return { error: "Erreur recherche produits", status: resp.status };
   return resp.json();
+}
+
+function extractText(content) {
+  if (!Array.isArray(content)) return "";
+  return content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
 }
 
 function extractText(content) {
