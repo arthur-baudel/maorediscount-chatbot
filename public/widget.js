@@ -1,4 +1,4 @@
-// widget.js — Bulle de chat MaoréDiscount (refonte visuelle v2)
+// widget.js — Bulle de chat MaoréDiscount (refonte visuelle v2 — token éphémère)
 // Intégration : <script src="https://maorediscount-api.vercel.app/widget.js"></script>
 (function () {
   if (document.readyState === "loading") {
@@ -9,17 +9,32 @@
 
   function mountWidget() {
     const API_URL = "https://maorediscount-api.vercel.app/api/chat";
+    const TOKEN_URL = "https://maorediscount-api.vercel.app/api/widget-token";
 
     // ---------- Palette ----------
-    const BRAND = "#16407A";       // bleu profond, plus distinctif que le bleu générique
+    const BRAND = "#16407A";
     const BRAND_DARK = "#0F2E58";
-    const ACCENT = "#FF6B4A";      // corail — CTA, envoi, accents ponctuels
+    const ACCENT = "#FF6B4A";
     const ACCENT_SOFT = "#FFEDE8";
-    const CHIP_SOFT = "#EAF1FA";   // fond des boutons rapides
+    const CHIP_SOFT = "#EAF1FA";
 
     let history = [];
     let isOpen = false;
     let isLoading = false;
+
+    // ---------- Gestion du token éphémère ----------
+    let widgetToken = null;
+    let tokenExpiry = 0;
+
+    async function getWidgetToken() {
+      if (widgetToken && Date.now() < tokenExpiry - 10000) return widgetToken;
+      const resp = await fetch(TOKEN_URL);
+      if (!resp.ok) throw new Error("Impossible d'obtenir le token widget");
+      const data = await resp.json();
+      widgetToken = data.token;
+      tokenExpiry = Date.now() + data.expiresIn * 1000;
+      return widgetToken;
+    }
 
     const MAIN_MENU = [
       { label: "Voir nos produits", emoji: "🛍️", message: "Qu'est-ce que vous vendez ?" },
@@ -89,18 +104,24 @@
       .md-bubble a { color: ${ACCENT}; font-weight: 700; text-decoration: none; }
       .md-bubble a:hover { text-decoration: underline; }
 
-      /* Boutons rapides — intégrés au flux des messages, plus de bloc séparé */
- .md-qr-group {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 2px 0 14px 0;
-}
-.md-qr-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: ${CHIP_SOFT}; border: none; color: ${BRAND_DARK};
-  border-radius: 12px; padding: 8px 10px; font-size: 13px; font-weight: 600;
-  cursor: pointer; white-space: normal; text-align: left; line-height: 1.25;
-  box-sizing: border-box; width: 100%;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
+      /* Boutons rapides — grille 2x2 fixe en bas */
+      #md-quick-replies-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px;
+        background: #fff;
+        border-top: 1px solid #EDF0F4;
+      }
+      #md-quick-replies-container:empty { display: none; }
+      .md-qr-btn {
+        display: flex; align-items: center; gap: 8px;
+        background: ${CHIP_SOFT}; border: none; color: ${BRAND_DARK};
+        border-radius: 12px; padding: 8px 10px; font-size: 13px; font-weight: 600;
+        cursor: pointer; white-space: normal; text-align: left; line-height: 1.25;
+        box-sizing: border-box; transition: background 0.15s ease, transform 0.1s ease;
+        width: 100%;
+      }
       .md-qr-btn:hover { background: #DCE9F8; transform: translateY(-1px); }
       .md-qr-icon {
         width: 24px; height: 24px; border-radius: 8px; background: #fff;
@@ -165,6 +186,7 @@
       </div>
       <div id="md-chat-subheader">Nous sommes à votre disposition 👋</div>
       <div id="md-chat-messages"></div>
+      <div id="md-quick-replies-container"></div>
       <div id="md-chat-inputrow">
         <input id="md-chat-input" type="text" placeholder="Tapez votre message ici..." />
         <button id="md-chat-send">➤</button>
@@ -176,6 +198,7 @@
     document.body.appendChild(win);
 
     const messagesEl = win.querySelector("#md-chat-messages");
+    const quickRepliesContainer = win.querySelector("#md-quick-replies-container");
     const inputEl = win.querySelector("#md-chat-input");
     const sendBtn = win.querySelector("#md-chat-send");
     const closeBtn = win.querySelector("#md-chat-close");
@@ -194,16 +217,13 @@
       isOpen = false;
       win.classList.remove("open");
     });
-    homeBtn.addEventListener("click", () => {
-      showMenu();
-    });
-    resetBtn.addEventListener("click", () => {
-      resetConversation();
-    });
+    homeBtn.addEventListener("click", () => { showMenu(); });
+    resetBtn.addEventListener("click", () => { resetConversation(); });
 
     function resetConversation() {
       history = [];
       messagesEl.innerHTML = "";
+      quickRepliesContainer.innerHTML = "";
       showWelcome();
     }
 
@@ -216,40 +236,28 @@
       renderQuickReplies(MAIN_MENU, false);
     }
 
-    // Les boutons rapides sont désormais insérés DANS le flux des messages
-    // (comme un message à part entière), et non plus dans un bloc séparé
-    // sous les messages — ça évite l'espace vide qui apparaissait quand le
-    // contenu des messages était court.
     function renderQuickReplies(items, includeMenuButton) {
-      removeExistingQuickReplies();
-      const group = document.createElement("div");
-      group.className = "md-qr-group";
-      group.dataset.qrGroup = "true";
+      quickRepliesContainer.innerHTML = "";
 
       items.forEach((item) => {
         const btn = document.createElement("button");
         btn.className = "md-qr-btn";
         btn.innerHTML = `<span class="md-qr-icon">${item.emoji}</span>${item.label}`;
         btn.addEventListener("click", () => handleQuickReply(item));
-        group.appendChild(btn);
+        quickRepliesContainer.appendChild(btn);
       });
+
       if (includeMenuButton) {
         const menuBtn = document.createElement("button");
         menuBtn.className = "md-qr-btn md-qr-menu";
         menuBtn.innerHTML = `<span class="md-qr-icon">${MENU_BUTTON.emoji}</span>${MENU_BUTTON.label}`;
         menuBtn.addEventListener("click", () => showMenu());
-        group.appendChild(menuBtn);
+        quickRepliesContainer.appendChild(menuBtn);
       }
-      messagesEl.appendChild(group);
-      scrollToBottom();
-    }
-
-    function removeExistingQuickReplies() {
-      messagesEl.querySelectorAll('[data-qr-group="true"]').forEach(el => el.remove());
     }
 
     function handleQuickReply(item) {
-      removeExistingQuickReplies();
+      quickRepliesContainer.innerHTML = "";
       addUserMessage(item.label);
       runChat(item.message);
     }
@@ -264,7 +272,7 @@
       const text = inputEl.value.trim();
       if (!text || isLoading) return;
       inputEl.value = "";
-      removeExistingQuickReplies();
+      quickRepliesContainer.innerHTML = "";
       addUserMessage(text);
       runChat(text);
     }
@@ -272,9 +280,13 @@
     async function runChat(text) {
       setLoading(true);
       try {
+        const token = await getWidgetToken();
         const resp = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-widget-token": token
+          },
           body: JSON.stringify({ message: text, history }),
         });
         const data = await resp.json();
@@ -286,7 +298,7 @@
         console.error("MD widget error:", err);
       } finally {
         setLoading(false);
-        renderQuickReplies(MAIN_MENU.slice(0, 3), true);
+        renderQuickReplies(MAIN_MENU.slice(0, 4), true);
       }
     }
 
