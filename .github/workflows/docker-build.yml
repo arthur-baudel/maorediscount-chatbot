@@ -1,0 +1,36 @@
+name: Docker Build & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Build de l'image Docker
+        run: docker build -t maorediscount-chatbot .
+
+      - name: Test que le conteneur démarre
+        run: |
+          docker run -d -p 3000:3000 --name test-container \
+            -e QDRANT_URL=${{ secrets.QDRANT_URL }} \
+            -e QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }} \
+            -e VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }} \
+            -e PRESTASHOP_URL=${{ secrets.PRESTASHOP_URL }} \
+            -e CHATLAB_SECRET=${{ secrets.CHATLAB_SECRET }} \
+            maorediscount-chatbot
+          sleep 3
+          echo "=== LOGS DU CONTENEUR ==="
+          docker logs test-container
+          echo "=========================="
+          curl -f http://localhost:3000/health || exit 1
+
+      - name: Nettoyage
+        if: always()
+        run: docker rm -f test-container || true
