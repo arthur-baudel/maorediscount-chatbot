@@ -4,7 +4,7 @@
 > Vos clients expriment simplement ce qu'ils cherchent avec leurs propres mots, et l'IA leur recommande immédiatement les bons articles.
 
 [![Démo live](https://img.shields.io/badge/D%C3%A9mo%20live-tester%20maintenant-blue)](https://maorediscount-api.vercel.app)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat&logo=open-source-initiative&logoColor=white)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat&logo=open-source-initiative&logoColor=white)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-brightgreen)](https://nodejs.org)
 
 ---
