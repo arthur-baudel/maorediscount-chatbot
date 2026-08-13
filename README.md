@@ -48,6 +48,19 @@ Exemples à essayer :
 5. Widget JS intégrable en une ligne de script sur le site
 ```
 
+---
+
+## 🔒 Sécurité
+
+- **CORS strict** — Seul le domaine du client est autorisé à interroger l'API.
+- **Rate limiting sur store partagé (Upstash Redis)** — Comptage centralisé du nombre de requêtes par utilisateur pour bloquer le spam et les robots, adapté au serverless multi-instances.
+- **Authentification par token** Sécurisation des échanges directs entre le widget et l'API backend.
+- **Validation stricte des inputs** — Contrôle rigoureux de la taille des messages, du format de l'historique et des paramètres de recherche pour prévenir les abus.
+- **Respect total de la vie privée (RGPD)** — Aucune donnée personnelle ni aucun historique de conversation n'est collecté ou stocké.
+- **Erreurs génériques en production** — jamais de détail d'erreur interne exposé au client.
+
+---
+
 ### Stack technique
 
 | Composant | Technologie | Pourquoi |
@@ -65,22 +78,14 @@ Exemples à essayer :
 
 Quelques choix qui ne sont pas évidents au premier coup d'œil, mais qui ont un vrai impact sur la fiabilité :
 
-**Recherche hybride plutôt que mots-clés purs.** Une première version reposait sur un mapping mots-clés → catégorie, avec filtrage manuel par attribut. Problème : chaque nouvelle formulation ("chaise de jardin" vs "chaise jardin") ou faux positif de sous-chaîne ("LG" matché dans "P608FLG") demandait un correctif au cas par cas. La recherche vectorielle en chemin par défaut, avec les mots-clés en filtre plutôt qu'en aiguillage binaire, élimine toute une classe de ces bugs d'un coup.
+**Recherche hybride.** Un croisement entre deux approches complémentaires :
+- Par le sens (intelligente) : elle comprend l'intention globale, même avec des synonymes ou des fautes de frappe (ex: "chaise pour le jardin").
+- Par mots-clés (exacte) : elle filtre sur des critères stricts et indiscutables (ex: marque, couleur, référence exacte).
+Allier les deux permet de trouver le bon produit sans être bloqué par la formulation.
 
 **Zéro fallback silencieux.** Quand un filtre ne trouve rien, la règle est stricte : 0 résultat honnête plutôt qu'un retour à une liste non filtrée. Un chatbot de vente qui dit "je n'ai pas ça" est plus fiable qu'un chatbot qui montre un produit approximatif en prétendant que c'est le bon.
 
 **Rate limiting sur store partagé, pas en mémoire.** Sur une architecture serverless, chaque invocation peut tourner sur une instance différente — un compteur en mémoire locale ne protège pas réellement contre les abus. D'où le choix d'Upstash Redis (compteur partagé) plutôt qu'une simple `Map` JavaScript, qui aurait donné une fausse impression de protection.
-
----
-
-## 🔒 Sécurité
-
-- **CORS strict** — seul le domaine du client peut appeler l'API
-- **Rate limiting sur store partagé** (Upstash Redis) — fiable en environnement serverless multi-instances
-- **Authentification par token** entre le widget et l'API
-- **Validation stricte des inputs** — taille des messages, format de l'historique, paramètres de recherche
-- **Aucune donnée personnelle collectée ou stockée**
-- **Erreurs génériques en production** — jamais de détail d'erreur interne exposé au client
 
 ---
 
