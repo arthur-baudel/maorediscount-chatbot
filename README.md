@@ -1,5 +1,5 @@
 # Classic AI — Assistant de recherche IA pour e-commerce
-![Docker Build](https://github.com/arthur-baudel/maorediscount-chatbot/actions/workflows/docker-build.yml/badge.svg)
+[![Docker Build & Test](https://github.com/arthur-baudel/maorediscount-chatbot/actions/workflows/docker-build.yml/badge.svg)](https://github.com/arthur-baudel/maorediscount-chatbot/actions/workflows/docker-build.yml)
 
 > Vos clients expriment simplement ce qu'ils cherchent avec leurs propres mots, et l'IA leur recommande immédiatement les bons articles.
 
