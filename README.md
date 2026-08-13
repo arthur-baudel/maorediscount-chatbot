@@ -11,7 +11,7 @@
 
 ## 🎯 Le problème que ça résout
 
-Sur la plupart des boutiques PrestaShop/WooCommerce, une recherche qui ne tape pas le mot exact du produit renvoie une page vide — une vente perdue instantanément.
+Sur la plupart des boutiques PrestaShop, une recherche qui ne tape pas le mot exact du produit renvoie une page vide — une vente perdue instantanément.
 
 | Requête client | Recherche classique | Ce projet |
 |---|---|---|
