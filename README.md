@@ -1,7 +1,7 @@
 # Classic AI — Assistant de recherche IA pour e-commerce
 ![Docker Build](https://github.com/arthur-baudel/maorediscount-chatbot/actions/workflows/docker-build.yml/badge.svg)
 
-> Transforme la barre de recherche d'une boutique en ligne en une recherche conversationnelle. Un client peut chercher en langage naturel — même avec des fautes de frappe, des synonymes ou une description floue — et obtenir les bons produits, pas une page vide.
+> Vos clients expriment simplement ce qu'ils cherchent avec leurs propres mots, et l'IA leur recommande immédiatement les bons articles.
 
 [![Démo live](https://img.shields.io/badge/D%C3%A9mo%20live-tester%20maintenant-blue)](https://maorediscount-api.vercel.app)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
